@@ -27,7 +27,9 @@ param(
     [switch]$AllowLargeDownloads,
     [string]$Endpoint,
     [switch]$Help,
-    [switch]$Version
+    [switch]$Version,
+    [string]$Output,
+    [switch]$Json
 )
 
 $ErrorActionPreference = 'Stop'
@@ -43,7 +45,7 @@ Usage:
           [-AllDrives] [-NoDownloads] [-DownloadBenchmarks]
           [-UseInstalledBenchmarks] [-NoProprietary]
           [-AllowNetwork -Endpoint host[:port]] [-AllowLargeDownloads]
-          [-Help] [-Version]
+          [-Output <file>] [-Json] [-Help] [-Version]
 
 Profiles: Quick (90 s budget), Standard (600 s, default), Full (900 s).
 Categories: cpu, gpu, memory, storage, network, npu, crypto, thermals, other.
@@ -1439,7 +1441,7 @@ function Write-Report {
     Add-Line ('| Architecture | ' + (Escape-Md $archDetail) + ' |')
     Add-Line ('| Host | ' + (Escape-Md $hostName) + ' |')
     Add-Line ('| Overrides | ' + (Escape-Md ($overrides -join '; ')) + ' |')
-    Add-SectionBreak()
+    Add-SectionBreak
 
     Add-Line '## System Overview'
     Add-Line ''
@@ -1475,7 +1477,7 @@ function Write-Report {
     }
     Add-Line ('| Installed RAM | ' + ([math]::Round($totalMem / 1GB, 2)).ToString('F2', [Globalization.CultureInfo]::InvariantCulture) + ' GiB |')
     Add-Line ('| Memory modules | ' + $mems.Count.ToString() + ' |')
-    Add-SectionBreak()
+    Add-SectionBreak
 
     Add-Line '## CPU'
     Add-Line ''
@@ -1491,7 +1493,7 @@ function Write-Report {
     }
     Add-Line ''
     Add-Line 'CPU benchmarks use labeled HBSS fallback loops; scores are not comparable to third-party suites.'
-    Add-SectionBreak()
+    Add-SectionBreak
 
     Add-Line '## GPU'
     Add-Line ''
@@ -1510,7 +1512,7 @@ function Write-Report {
     }
     Add-Line ''
     Add-Line 'GPU compute benchmarks require an explicitly permitted, detected engine. No GPU result is fabricated.'
-    Add-SectionBreak()
+    Add-SectionBreak
 
     Add-Line '## Memory'
     Add-Line ''
@@ -1524,7 +1526,7 @@ function Write-Report {
     else {
         Add-Line 'Physical memory module inventory unavailable via CIM.'
     }
-    Add-SectionBreak()
+    Add-SectionBreak
 
     Add-Line '## Storage'
     Add-Line ''
@@ -1551,7 +1553,7 @@ function Write-Report {
     }
     Add-Line ''
     Add-Line 'All storage benchmarks use a bounded temporary file in the temp workspace. Raw block devices are never touched.'
-    Add-SectionBreak()
+    Add-SectionBreak
 
     Add-Line '## Network'
     Add-Line ''
@@ -1572,7 +1574,7 @@ function Write-Report {
     }
     Add-Line ''
     Add-Line ('Throughput testing requires both -AllowNetwork and -Endpoint; current state: ' + $(if ($AllowNetwork -and $Endpoint) { 'enabled' } else { 'disabled' }) + '.')
-    Add-SectionBreak()
+    Add-SectionBreak
 
     Add-Line '## AI / NPU'
     Add-Line ''
@@ -1588,7 +1590,7 @@ function Write-Report {
     else {
         Add-Line 'No NPU/accelerator identified from PnP device names.'
     }
-    Add-SectionBreak()
+    Add-SectionBreak
 
     Add-Line '## Other Hardware'
     Add-Line ''
@@ -1615,7 +1617,7 @@ function Write-Report {
         Add-Line ('| System type | ' + (Escape-Md ($comps[0].SystemType)) + ' |')
     }
     Add-Line ('| PnP entities | ' + @($script:inv['Pnp']).Count.ToString() + ' |')
-    Add-SectionBreak()
+    Add-SectionBreak
 
     Add-Line '## Thermals and Performance Behavior'
     Add-Line ''
@@ -1632,7 +1634,7 @@ function Write-Report {
     }
     Add-Line ''
     Add-Line 'A short benchmark run cannot establish sustained thermal stability; no sustained-power claim is made.'
-    Add-SectionBreak()
+    Add-SectionBreak
 
     Add-Line '## Benchmark Results'
     Add-Line ''
@@ -1656,7 +1658,7 @@ function Write-Report {
     if ($script:results.Count -eq 0) {
         Add-Line '| none | - | - | - | - | - | - | - | - | - | - | No benchmark executed |'
     }
-    Add-SectionBreak()
+    Add-SectionBreak
 
     Add-Line '## Methodology'
     Add-Line ''
@@ -1667,14 +1669,14 @@ function Write-Report {
     Add-Line 'Proprietary tools (Geekbench, Cinebench) are detected only; HBSS never downloads them, accepts an EULA, bypasses activation/GUI, or uploads results. CrystalDiskMark is detected only because it is GUI-only with no non-interactive CLI. DiskSpd is the primary automated storage engine.'
     Add-Line 'Inventory uses read-only WMI/CIM (Win32_Processor, Win32_PhysicalMemory, Win32_VideoController, Win32_DiskDrive, Get-PhysicalDisk, Win32_OperatingSystem, Win32_BaseBoard, Win32_BIOS, Win32_Battery, Win32_NetworkAdapter, Win32_PnPEntity, Win32_ComputerSystem). Missing classes are handled without aborting.'
     Add-Line 'Scores from different engines or versions are not compared; every row records its own engine, workload, dataset and origin.'
-    Add-SectionBreak()
+    Add-SectionBreak
 
     Add-Line '## Trace and Privacy'
     Add-Line ''
     Add-Line 'HBSS intentionally creates no persistent application files, telemetry, or configuration changes. Temporary artifacts are cleaned up on normal termination. Unexpected power loss or OS-level logging may fall outside its control.'
     Add-Line ''
     Add-Line 'Third-party engines (when explicitly enabled) and operating-system logging may still record activity. HBSS itself transmits no data.'
-    Add-SectionBreak()
+    Add-SectionBreak
 
     Add-Line '## Skipped Tests'
     Add-Line ''
@@ -1686,12 +1688,12 @@ function Write-Report {
     if (@($script:skipped).Count -eq 0) {
         Add-Line '| none | - | - | - |'
     }
-    Add-SectionBreak()
+    Add-SectionBreak
 
     Add-Line '## License'
     Add-Line ''
     Add-Line 'HBSS is licensed GPL-3.0-or-later (SPDX: GPL-3.0-or-later), Copyright (C) 2025 useless-rs. Third-party engines keep their own licenses; HBSS being GPL does not grant rights to redistribute proprietary binaries.'
-    Add-SectionBreak()
+    Add-SectionBreak
 
     Add-Line '## Caveats'
     Add-Line ''
@@ -1702,7 +1704,38 @@ function Write-Report {
     Add-Line '- Some hardware capabilities cannot be measured portably without admin rights or vendor tooling.'
     Add-Line '- HBSS is an evaluation tool, not a certification or a substitute for vendor-validated benchmarks.'
 
-    [Console]::Out.Write(($script:reportLines -join "`n") + "`n")
+    $reportText = ($script:reportLines -join "`n") + "`n"
+    [Console]::Out.Write($reportText)
+
+    if ($Output) {
+        try {
+            [System.IO.File]::WriteAllText($Output, $reportText, [System.Text.Encoding]::UTF8)
+            [Console]::Error.WriteLine(('Report written to ' + $Output))
+        }
+        catch {
+            [Console]::Error.WriteLine('HBSS: could not write report to ' + $Output + ': ' + $_.Exception.Message)
+        }
+    }
+    if ($Json) {
+        $jsonPath = if ($Output) { $Output + '.json' } else { 'hbss_report.json' }
+        try {
+            $rows = @()
+            foreach ($r in $script:results) {
+                $rows += [pscustomobject]@{
+                    benchmark = $r.Benchmark; category = $r.Category; engine = $r.Engine
+                    version = $r.Version; workload = $r.Workload; threads = $r.Threads
+                    dataset = $r.Dataset; duration_s = $r.Duration; result = $r.Result
+                    unit = $r.Unit; origin = $r.Origin; notes = $r.Notes
+                }
+            }
+            $json = $rows | ConvertTo-Json -Depth 3
+            [System.IO.File]::WriteAllText($jsonPath, $json, [System.Text.Encoding]::UTF8)
+            [Console]::Error.WriteLine(('JSON summary written to ' + $jsonPath))
+        }
+        catch {
+            [Console]::Error.WriteLine('HBSS: could not write JSON summary: ' + $_.Exception.Message)
+        }
+    }
 }
 
 # ---------------------------------------------------------------------------
