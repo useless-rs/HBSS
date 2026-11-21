@@ -1,0 +1,126 @@
+{
+  "hbss_version": "1.0.0",
+  "license": "GPL-3.0-or-later",
+  "notes": "Pinned third-party and HBSS assets. Downloads require --download-benchmarks (and --allow-large-downloads for large assets). Every entry must be verified by SHA-256 before execution. Entries without a verified sha256 are not downloadable by HBSS.",
+  "assets": [
+    {
+      "id": "hbss-bench-posix",
+      "kind": "hbss-payload",
+      "os": [
+        "linux",
+        "macos",
+        "freebsd"
+      ],
+      "arch": [
+        "x86_64",
+        "aarch64",
+        "x86"
+      ],
+      "url": "https://raw.githubusercontent.com/useless-rs/HBSS/main/bench.sh",
+      "sha256": "e77f44ef10b58e09d38d99869199b324661d9cbd321c38939bb7b19b941e8569",
+      "license": "GPL-3.0-or-later"
+    },
+    {
+      "id": "microsoft-diskspd",
+      "kind": "third-party",
+      "os": [
+        "windows"
+      ],
+      "arch": [
+        "x86_64",
+        "aarch64"
+      ],
+      "version": "2.3",
+      "url": "https://github.com/microsoft/diskspd/releases/download/v2.3/DiskSpd.ZIP",
+      "sha256": "18609981e8b04b4f645f1fd182ad0541615fe71722de36a9a933c54f747218a3",
+      "size_bytes": 3606329,
+      "license": "MIT",
+      "notes": "Primary automated Windows storage engine. Extract ZIP to temp; never write to raw disks."
+    },
+    {
+      "id": "fio-windows-x64",
+      "kind": "third-party",
+      "os": [
+        "windows"
+      ],
+      "arch": [
+        "x86_64"
+      ],
+      "version": "3.43",
+      "url": "https://github.com/axboe/fio/releases/download/3.43/fio-3.43-x64.msi",
+      "sha256": "8299e6e6fbc024d3b74aa1ce62fb94ef6960b45629fbfa678b720834b6eb34aa",
+      "size_bytes": 2871296,
+      "license": "GPL-2.0",
+      "notes": "Extract MSI to temp; no permanent install."
+    },
+    {
+      "id": "blender",
+      "kind": "third-party",
+      "os": [
+        "linux",
+        "windows",
+        "macos"
+      ],
+      "arch": [
+        "x86_64",
+        "aarch64"
+      ],
+      "version": "5.3.0",
+      "url": "https://download.blender.org/release/Blender5.3/blender-5.3.0-linux-x64.tar.xz",
+      "sha256": "REQUIRES_MAINTAINER_PINNED_HASH",
+      "size_bytes": 250000000,
+      "license": "GPL-3.0-or-later",
+      "requires_large_download": true,
+      "notes": "Official SHA-256 published per release; HBSS must pin the exact hash for the chosen version/arch before enabling. Benchmark scenes are separate and must also be pinned."
+    },
+    {
+      "id": "7zip-extra-linux-x64",
+      "kind": "third-party",
+      "os": [
+        "linux"
+      ],
+      "arch": [
+        "x86_64"
+      ],
+      "version": "26.06",
+      "url": "https://www.7-zip.org/a/7z2606-linux-x64.tar.xz",
+      "sha256": "REQUIRES_MAINTAINER_PINNED_HASH",
+      "license": "LGPL-2.1",
+      "notes": "Official page publishes no SHA-256; HBSS must pin its own verified hash before enabling automatic download."
+    },
+    {
+      "id": "phoronix-test-suite",
+      "kind": "third-party",
+      "os": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "arch": [
+        "x86_64",
+        "aarch64"
+      ],
+      "version": "10.8.6",
+      "url": "https://www.phoronix-test-suite.com/releases/phoronix-test-suite-10.8.6.tar.gz",
+      "sha256": "REQUIRES_MAINTAINER_PINNED_HASH",
+      "license": "GPL-3.0-or-later",
+      "notes": "Curated free tests only; batch mode; never auto-upload to OpenBenchmarking.org."
+    }
+  ],
+  "not_downloadable": [
+    "geekbench-6",
+    "geekbench-compute",
+    "cinebench",
+    "crystaldiskmark",
+    "intel-mlc",
+    "ramspeed",
+    "lmbench",
+    "stream (source compiled locally)",
+    "y-cruncher",
+    "clpeak",
+    "ioping",
+    "sysbench",
+    "openssl",
+    "iperf3"
+  ]
+}

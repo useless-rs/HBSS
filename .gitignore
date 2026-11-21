@@ -1,0 +1,6 @@
+# Temporary / local
+*.tmp
+.DS_Store
+# Work dirs
+hbss.*
+# Research notes stay; keep docs/
