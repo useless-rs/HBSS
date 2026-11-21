@@ -29,7 +29,7 @@ if ([string]::IsNullOrEmpty($BaseUrl)) {
 $PayloadUrl = "$BaseUrl/bench.ps1"
 
 # The parent release process replaces this literal with the real pinned digest.
-$PayloadSha256 = '21e94df343554fcf1c74d953590d814684bc352c2877ff495aab480252ad526b'
+$PayloadSha256 = '947ad0e3d356d67fa46ee1f50abe8e4024d21d330d563601966077310f40f0ac'
 
 $tempDir = $null
 $payloadPath = $null
@@ -70,7 +70,7 @@ try {
             exit 1
         }
 
-        $isPlaceholder = ($PayloadSha256 -eq '21e94df343554fcf1c74d953590d814684bc352c2877ff495aab480252ad526b')
+        $isPlaceholder = ($PayloadSha256 -eq 'REPLACE_WITH_PINNED_SHA256')
         $expected = $PayloadSha256.ToLowerInvariant()
         if ((-not $isPlaceholder) -and ($actualHash -ne $expected)) {
             [Console]::Error.WriteLine("HBSS: payload SHA-256 mismatch. Expected '$expected', got '$actualHash'. Refusing to execute.")

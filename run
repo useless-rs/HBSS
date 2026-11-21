@@ -11,7 +11,7 @@
 
 HBSS_VERSION="1.0.0"
 BASE_URL="${HBSS_BASE_URL:-https://raw.githubusercontent.com/useless-rs/HBSS/main}"
-PAYLOAD_SHA256="7242d40075915b4be3b8c793207ffa40cb4a87728695b616ce955324ef16eb23"
+PAYLOAD_SHA256="8bc5d52c0cbc0655095ae3e7b0717ed961f7a22c3ffdf1724cc0fd7885995346"
 
 WORKDIR=$(mktemp -d "${TMPDIR:-/tmp}/hbss_run.XXXXXX") || { echo "Failed to create temp dir" >&2; exit 1; }
 cleanup() { rm -rf "$WORKDIR"; }

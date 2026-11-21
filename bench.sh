@@ -1686,29 +1686,56 @@ printf '_End of report._\n'
 # ---------------------------------------------------------------------------
 if [ -t 3 ]; then
     # fd 3 is the original stdout (terminal).
-    if have_cmd glow; then
-        glow "$REPORT_FILE" >&3 2>/dev/null || cat "$REPORT_FILE" >&3
-    elif [ "${HBSS_COLOR:-auto}" != "never" ]; then
-        # Lightweight ANSI colorizer using only awk (no external deps).
+    # Pure-shell ANSI renderer (no external dependencies such as glow).
+    if [ "${HBSS_COLOR:-auto}" != "never" ]; then
         awk '
         BEGIN {
             esc = sprintf("%c", 27)
-            bold = esc "[1m"; dim = esc "[2m"; reset = esc "[0m"
-            cyan = esc "[36m"; green = esc "[32m"; yellow = esc "[33m"; magenta = esc "[35m"
+            reset = esc "[0m"
+            bold = esc "[1m"
+            dim = esc "[2m"
+            italic = esc "[3m"
+            cyan = esc "[36m"
+            green = esc "[32m"
+            yellow = esc "[33m"
+            blue = esc "[34m"
+            magenta = esc "[35m"
+            white = esc "[37m"
+            gray = esc "[90m"
+            # glow-like palette
+            h1 = bold cyan
+            h2 = bold green
+            h3 = bold yellow
+            hr = gray
+            code = dim
+            tablesep = gray
+            inlinecode = yellow
         }
-        /^# / { print bold cyan $0 reset; next }
-        /^## / { print bold green $0 reset; next }
-        /^### / { print bold yellow $0 reset; next }
-        /^---[[:space:]]*$/ { print dim "────────────────────────────────────────────────────────" reset; next }
-        /^```/ { print dim $0 reset; next }
-        /^\|[-:| ]+\|$/ { print dim $0 reset; next }
-        { print $0 }
+        # Headings
+        /^# / { print h1 $0 reset; next }
+        /^## / { print h2 $0 reset; next }
+        /^### / { print h3 $0 reset; next }
+        # Horizontal rule
+        /^---[[:space:]]*$/ { print hr "────────────────────────────────────────────────────────────────" reset; next }
+        # Code fence
+        /^```/ { print code $0 reset; next }
+        # Table separator row
+        /^\|[-:+| ]+\|$/ { print tablesep $0 reset; next }
+        # Blockquote
+        /^> / { print italic blue $0 reset; next }
+        # Table header row (first column bold-ish): detect rows starting with | and containing Field/---
+        {
+            line = $0
+            gsub(/`[^`]+`/, inlinecode "&" reset, line)
+            gsub(/\*\*[^*]+\*\*/, bold "&" reset, line)
+            print line
+        }
         ' "$REPORT_FILE" >&3
     else
         cat "$REPORT_FILE" >&3
     fi
 else
-    # Non-interactive: emit raw Markdown (Glow-friendly, no color codes).
+    # Non-interactive: emit raw Markdown (no color codes).
     cat "$REPORT_FILE" >&3
 fi
 

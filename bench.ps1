@@ -1707,16 +1707,23 @@ function Write-Report {
     $reportText = ($script:reportLines -join "`n") + "`n"
 
     $interactive = -not [Console]::IsOutputRedirected
-    $glowCmd = Get-Command glow -ErrorAction SilentlyContinue
-    if ($interactive -and $glowCmd) {
-        $tmpReport = [System.IO.Path]::GetTempFileName()
-        try {
-            [System.IO.File]::WriteAllText($tmpReport, $reportText, [System.Text.Encoding]::UTF8)
-            & glow $tmpReport
+    if ($interactive -and ($env:HBSS_COLOR -ne 'never')) {
+        # Pure-PowerShell ANSI renderer (no external dependencies such as glow).
+        $esc = [char]27
+        $reset = "$esc[0m"; $bold = "$esc[1m"; $dim = "$esc[2m"; $italic = "$esc[3m"
+        $cyan = "$esc[36m"; $green = "$esc[32m"; $yellow = "$esc[33m"; $blue = "$esc[34m"; $gray = "$esc[90m"
+        $sb = New-Object System.Text.StringBuilder
+        foreach ($line in $script:reportLines) {
+            if ($line -match '^# ') { [void]$sb.Append($bold + $cyan + $line + $reset + "`n"); continue }
+            if ($line -match '^## ') { [void]$sb.Append($bold + $green + $line + $reset + "`n"); continue }
+            if ($line -match '^### ') { [void]$sb.Append($bold + $yellow + $line + $reset + "`n"); continue }
+            if ($line -match '^---\s*$') { [void]$sb.Append($gray + ('-' * 60) + $reset + "`n"); continue }
+            if ($line -match '^```') { [void]$sb.Append($dim + $line + $reset + "`n"); continue }
+            if ($line -match '^\|[-:+| ]+\|$') { [void]$sb.Append($gray + $line + $reset + "`n"); continue }
+            if ($line -match '^> ') { [void]$sb.Append($italic + $blue + $line + $reset + "`n"); continue }
+            [void]$sb.Append($line + "`n")
         }
-        finally {
-            Remove-Item -LiteralPath $tmpReport -ErrorAction SilentlyContinue
-        }
+        [Console]::Out.Write($sb.ToString())
     }
     else {
         [Console]::Out.Write($reportText)

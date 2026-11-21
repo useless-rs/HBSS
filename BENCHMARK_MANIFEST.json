@@ -17,7 +17,7 @@
         "x86"
       ],
       "url": "https://raw.githubusercontent.com/useless-rs/HBSS/main/bench.sh",
-      "sha256": "7242d40075915b4be3b8c793207ffa40cb4a87728695b616ce955324ef16eb23",
+      "sha256": "8bc5d52c0cbc0655095ae3e7b0717ed961f7a22c3ffdf1724cc0fd7885995346",
       "license": "GPL-3.0-or-later"
     },
     {
