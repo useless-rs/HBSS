@@ -259,10 +259,9 @@ if [ "$PROFILE" = "quick" ]; then COMPILE_OK=0; fi
 # Temp workspace
 WORKDIR=$(mktemp -d "${TMPDIR:-/tmp}/hbss.XXXXXX") || { echo "Failed to create temp dir" >&2; exit 1; }
 TOTAL_START=$(now_ms)
-if [ -n "$OUTPUT_FILE" ]; then
-    REPORT_FILE="$WORKDIR/report.md"
-    exec > "$REPORT_FILE"
-fi
+# Always buffer the report to a file so we can render it (glow/color) at the end.
+REPORT_FILE="$WORKDIR/report.md"
+exec > "$REPORT_FILE"
 RESULTS="$WORKDIR/results.tsv"
 SKIPPED="$WORKDIR/skipped.tsv"
 FAILED="$WORKDIR/failed.tsv"
@@ -1681,16 +1680,48 @@ EOF
 printf '\n---\n\n'
 printf '_End of report._\n'
 
-# Finalize --output / --json (report currently in $REPORT_FILE if --output was set).
+# ---------------------------------------------------------------------------
+# Render the buffered report (Glow if available on a TTY, else optional color,
+# else raw Markdown). No hard dependency: glow is used only if already installed.
+# ---------------------------------------------------------------------------
+if [ -t 3 ]; then
+    # fd 3 is the original stdout (terminal).
+    if have_cmd glow; then
+        glow "$REPORT_FILE" >&3 2>/dev/null || cat "$REPORT_FILE" >&3
+    elif [ "${HBSS_COLOR:-auto}" != "never" ]; then
+        # Lightweight ANSI colorizer using only awk (no external deps).
+        awk '
+        BEGIN {
+            esc = sprintf("%c", 27)
+            bold = esc "[1m"; dim = esc "[2m"; reset = esc "[0m"
+            cyan = esc "[36m"; green = esc "[32m"; yellow = esc "[33m"; magenta = esc "[35m"
+        }
+        /^# / { print bold cyan $0 reset; next }
+        /^## / { print bold green $0 reset; next }
+        /^### / { print bold yellow $0 reset; next }
+        /^---[[:space:]]*$/ { print dim "────────────────────────────────────────────────────────" reset; next }
+        /^```/ { print dim $0 reset; next }
+        /^\|[-:| ]+\|$/ { print dim $0 reset; next }
+        { print $0 }
+        ' "$REPORT_FILE" >&3
+    else
+        cat "$REPORT_FILE" >&3
+    fi
+else
+    # Non-interactive: emit raw Markdown (Glow-friendly, no color codes).
+    cat "$REPORT_FILE" >&3
+fi
+
+# --output: copy the (raw) report to the requested file.
 if [ -n "$OUTPUT_FILE" ]; then
-    cat "$REPORT_FILE" >&3 2>/dev/null
     cp "$REPORT_FILE" "$OUTPUT_FILE" 2>/dev/null
     printf 'Report written to %s\n' "$OUTPUT_FILE" >&2
 fi
+
+# --json: write a JSON summary of result rows.
 if [ "$JSON_OUTPUT" -eq 1 ]; then
-    jsonfile="${OUTPUT_FILE:-hbss_report}.json"
-    [ -n "$OUTPUT_FILE" ] || jsonfile="hbss_report.json"
-    # Convert results.tsv to a JSON array (best-effort, no external deps beyond awk).
+    jsonfile="${OUTPUT_FILE:+${OUTPUT_FILE}.json}"
+    [ -z "$jsonfile" ] && jsonfile="hbss_report.json"
     awk -F '\t' 'BEGIN{print "["} { if(NR>1) printf ","; printf "{\"benchmark\":\"%s\",\"category\":\"%s\",\"engine\":\"%s\",\"version\":\"%s\",\"workload\":\"%s\",\"threads\":\"%s\",\"dataset\":\"%s\",\"duration_s\":\"%s\",\"result\":\"%s\",\"unit\":\"%s\",\"origin\":\"%s\",\"notes\":\"%s\"}\n", $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12 } END{print "]"}' "$RESULTS" > "$jsonfile" 2>/dev/null
     printf 'JSON summary written to %s\n' "$jsonfile" >&2
 fi
