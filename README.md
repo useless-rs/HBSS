@@ -121,6 +121,8 @@ Long-running tests are skipped on battery power. There are no unlimited loops.
 | `--allow-network` | Permit network activity; required (together with `--endpoint`) for external tests. |
 | `--allow-large-downloads` | Additionally permit large assets such as Blender. |
 | `--endpoint <host>` | Explicit peer host for an external network test. |
+| `--output <file>` | Also write the final Markdown report to `<file>` (stdout is unchanged). |
+| `--json` | Also write a machine-readable JSON summary of all result rows (`<output>.json` or `hbss_report.json`). |
 | `--help` | Print usage and exit. |
 | `--version` | Print version (`HBSS 1.0.0`) and exit. |
 
