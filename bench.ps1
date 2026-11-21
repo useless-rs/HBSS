@@ -1705,7 +1705,22 @@ function Write-Report {
     Add-Line '- HBSS is an evaluation tool, not a certification or a substitute for vendor-validated benchmarks.'
 
     $reportText = ($script:reportLines -join "`n") + "`n"
-    [Console]::Out.Write($reportText)
+
+    $interactive = -not [Console]::IsOutputRedirected
+    $glowCmd = Get-Command glow -ErrorAction SilentlyContinue
+    if ($interactive -and $glowCmd) {
+        $tmpReport = [System.IO.Path]::GetTempFileName()
+        try {
+            [System.IO.File]::WriteAllText($tmpReport, $reportText, [System.Text.Encoding]::UTF8)
+            & glow $tmpReport
+        }
+        finally {
+            Remove-Item -LiteralPath $tmpReport -ErrorAction SilentlyContinue
+        }
+    }
+    else {
+        [Console]::Out.Write($reportText)
+    }
 
     if ($Output) {
         try {
