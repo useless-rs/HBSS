@@ -532,7 +532,7 @@ detect_memory() {
             for n in /sys/devices/system/node/node*; do
                 [ -d "$n" ] || continue
                 mem=$(cat "$n/meminfo" 2>/dev/null | awk '/MemTotal/{print $4" "$5}')
-                [ -n "$mem" ] && printf 'NUMA %s: %s\n' "$(basename "$n")" "$mem" >> "$S_MEMORY"
+                [ -n "$mem" ] && printf '| NUMA %s | %s |\n' "$(basename "$n")" "$mem" >> "$S_MEMORY"
             done
         fi
     elif [ "$OS" = "macOS" ]; then
@@ -571,7 +571,7 @@ detect_gpu() {
             [ -d "$c" ] || continue
             ven=$(cat "$c/device/vendor" 2>/dev/null)
             dev=$(cat "$c/device/device" 2>/dev/null)
-            [ -n "$ven" ] && printf 'DRM card %s: vendor=%s device=%s\n' "$(basename "$c")" "$ven" "$dev" >> "$S_GPU"
+            [ -n "$ven" ] && printf '| DRM card %s | vendor=%s device=%s |\n' "$(basename "$c")" "$ven" "$dev" >> "$S_GPU"
         done
         if have_cmd nvidia-smi; then
             {
